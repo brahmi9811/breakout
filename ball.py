@@ -24,10 +24,10 @@ class Ball (turtle.Turtle):
     self.shape('ball.gif')
   def width(self):
     '''Returns object width'''
-    return WIDTH
+    return DIAMETER
   def height(self):
     '''Returns object height'''
-    return HEIGHT
+    return DIAMETER
   def hits(self, obj):
     '''Returns whether ball hits given object'''
     return False
