@@ -13,57 +13,94 @@ LEFT = -1
 RIGHT = 1
 NEUTRAL = 0
 
-class Paddle (turtle.Turtle):
-  def __init__(self, screen, x = STARTX, y = STARTY):
-    '''
-      Creates the paddle at the given location
-      Initially not moving (state = NEUTRAL)
-      Sets up the screen so that pressing Left/Right calls .left()/.right()
-        Releasing Left/Right calls .release()
-    '''
-    turtle.Turtle.__init__(self)
-    screen.addshape("paddle.gif")
-    self.shape("paddle.gif")
-  def animate(self):
-    '''
-      Moves the paddle left or right 10 px based on state
-      Will not move if past MINX or MAXX
-    '''
-    pass
-  def left(self, amt=SPEED):
-    '''Sets state to LEFT'''
-    self.state = LEFT
-  def right(self, amt=SPEED):
-    '''Sets state to RIGHT'''
-    self.state = RIGHT
-  def release(self):
-    '''Sets state to NEUTRAL'''
-    self.state = NEUTRAL
-  def width(self):
-    '''Returns width'''
-    return WIDTH
-  def height(self):
-    '''Returns height'''
-    return HEIGHT
-  def hit_ball(self, ball):
-    '''
-      Called when striking the ball
-      Bounces the ball so that ball's heading is set to 90 if dead center (same x coords)
-      Adjust angle by deltaX (leftward on left side, rightward on right side)
-    '''
-    pass
+class Paddle(turtle.Turtle):
+    def __init__(self, screen, x=STARTX, y=STARTY):
+        turtle.Turtle.__init__(self)
+
+        # Load the paddle image
+        screen.addshape("paddle.gif")
+        self.shape("paddle.gif")
+        self.penup()
+
+        # Position
+        self.goto(x, y)
+
+        # Default state
+        self.state = NEUTRAL
+
+        # Key bindings
+        screen.onkeypress(self.left, "Left")
+        screen.onkeypress(self.right, "Right")
+        screen.onkeyrelease(self.release, "Left")
+        screen.onkeyrelease(self.release, "Right")
+
+    def animate(self):
+        """Move paddle left/right depending on state."""
+        if self.state == LEFT:
+            new_x = self.xcor() - SPEED
+            if new_x >= MINX:
+                self.setx(new_x)
+
+        elif self.state == RIGHT:
+            new_x = self.xcor() + SPEED
+            if new_x <= MAXX:
+                self.setx(new_x)
+
+    def left(self, amt=SPEED):
+        self.state = LEFT
+
+    def right(self, amt=SPEED):
+        self.state = RIGHT
+
+    def release(self):
+        self.state = NEUTRAL
+
+    def width(self):
+        return WIDTH
+
+    def height(self):
+        return HEIGHT
+
+    def hit_ball(self, ball):
+        """
+        Bounce the ball depending on where it hits the paddle.
+        If hit at center → 90° (straight up).
+        Otherwise adjust based on deltaX.
+        """
+        ball_x = ball.xcor()
+        paddle_x = self.xcor()
+
+        deltaX = ball_x - paddle_x  # negative left, positive right
+
+        # Map this to an angle change (simple scaling factor)
+        angle_offset = deltaX * 1.2
+
+        # Base bounce straight upward
+        new_heading = 90 + angle_offset
+
+        ball.setheading(new_heading)
+
+
+# -----------------------------------------
+# DEMO
+# -----------------------------------------
+def make_paddle(screen):
+    global paddle
+    paddle = Paddle(screen)
+    return paddle
 
 if __name__ == '__main__':
-  # Short demo
-  # Move paddle with Left and Right
-  # End demo with Escape
-  screen = turtle.Screen()
-  screen.setup(640, 480)
-  make_paddle(screen)
-  def animate():
-    paddle.animate()
-    screen.ontimer(animate, 10)
-  screen.listen()
-  screen.ontimer(animate, 10)
-  screen.onkey(screen.bye, 'Escape')
-  screen.mainloop()
+    screen = turtle.Screen()
+    screen.setup(640, 480)
+
+    paddle = make_paddle(screen)
+
+    def animate_loop():
+        paddle.animate()
+        screen.ontimer(animate_loop, 10)
+
+    screen.listen()
+    screen.onkey(screen.bye, "Escape")
+
+    screen.ontimer(animate_loop, 10)
+    screen.mainloop()
